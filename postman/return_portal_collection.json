@@ -1,0 +1,828 @@
+{
+  "info": {
+    "_postman_id": "c86db254-8c7a-4abf-9721-3e4b77f98722",
+    "name": "Return Portal Collection",
+    "description": "Postman testing suite verifying Return Portal FastAPI backends, database CRUD, error cases, and file uploading.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Checks",
+      "item": [
+        {
+          "name": "GET /api/health",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Response is JSON and database is configured\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.status).to.eql(\"healthy\");",
+                  "    pm.expect(jsonData).to.have.property(\"database\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/health",
+              "host": ["{{base_url}}"],
+              "path": ["api", "health"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Order Operations",
+      "item": [
+        {
+          "name": "POST /api/orders/verify",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Order verification data is correct\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.order_number).to.eql(pm.environment.get(\"order_id\"));",
+                  "    pm.expect(jsonData.email).to.eql(pm.environment.get(\"customer_email\"));",
+                  "    pm.expect(jsonData.items).to.be.an(\"array\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_number\": \"{{order_id}}\",\n  \"email\": \"{{customer_email}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "verify"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/orders/{order_id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Order metadata response conforms to spec\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.have.property(\"id\");",
+                  "    pm.expect(jsonData).to.have.property(\"name\");",
+                  "    pm.expect(jsonData.email).to.eql(pm.environment.get(\"customer_email\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/orders/{order_id}/items",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Order items list conforms to spec\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.items).to.be.an(\"array\");",
+                  "    pm.expect(jsonData.items[0]).to.have.property(\"price\");",
+                  "    pm.expect(jsonData.items[0]).to.have.property(\"line_item_id\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/items",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "items"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/products/{product_id}/variants",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Product variants structure conforms to spec\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.variants).to.be.an(\"array\");",
+                  "    pm.expect(jsonData.variants[0]).to.have.property(\"variant_id\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/products/7891230/variants",
+              "host": ["{{base_url}}"],
+              "path": ["api", "products", "7891230", "variants"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/orders/{order_id}/fulfillment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Order fulfillment status is returned\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.fulfillment_status).to.not.be.null;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/orders/{{order_id}}/fulfillment",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "{{order_id}}", "fulfillment"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Metadata Configurations",
+      "item": [
+        {
+          "name": "GET /api/return-methods",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Methods include credit, exchange, refund\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    var ids = jsonData.map(x => x.id);",
+                  "    pm.expect(ids).to.include(\"credit\");",
+                  "    pm.expect(ids).to.include(\"refund\");",
+                  "    pm.expect(ids).to.include(\"exchange\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/return-methods",
+              "host": ["{{base_url}}"],
+              "path": ["api", "return-methods"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/return-reasons",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Reasons returns string tags\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an(\"array\");",
+                  "    pm.expect(jsonData).to.include(\"Defective / Damaged\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/return-reasons",
+              "host": ["{{base_url}}"],
+              "path": ["api", "return-reasons"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Return Request Operations",
+      "item": [
+        {
+          "name": "POST /api/returns/calculate",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Calculates total values correctly\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.subtotal).to.be.greaterThan(0);",
+                  "    pm.expect(jsonData.handling_fee).to.eql(5.99);",
+                  "    pm.expect(jsonData.total_refund_amount).to.eql(jsonData.subtotal - 5.99);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_number\": \"{{order_id}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\"\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/returns/calculate",
+              "host": ["{{base_url}}"],
+              "path": ["api", "returns", "calculate"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/returns/create",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Return registration saves and updates return_id\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.return_id).to.not.be.null;",
+                  "    pm.environment.set(\"return_id\", jsonData.return_id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_number\": \"{{order_id}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Notes text here.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/returns/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "returns", "create"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/returns/{return_id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Verify database return request record matches input\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.return_id).to.eql(pm.environment.get(\"return_id\"));",
+                  "    pm.expect(jsonData.order_number).to.eql(pm.environment.get(\"order_id\"));",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/returns/{{return_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "returns", "{{return_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Upload Media Operations",
+      "item": [
+        {
+          "name": "POST /api/uploads/return-image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Registers GridFS object and saves file_id\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.file_id).to.not.be.null;",
+                  "    pm.environment.set(\"file_id\", jsonData.file_id);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "description": "Choose local testing image",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "order_id",
+                  "value": "{{order_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "product_id",
+                  "value": "item_01",
+                  "type": "text"
+                },
+                {
+                  "key": "reason",
+                  "value": "Defective / Damaged",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/uploads/return-image",
+              "host": ["{{base_url}}"],
+              "path": ["api", "uploads", "return-image"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/uploads/{file_id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/uploads/{{file_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "uploads", "{{file_id}}"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/uploads/{file_id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"File deletion succeeds\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/uploads/{{file_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "uploads", "{{file_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Validation Error Tests",
+      "item": [
+        {
+          "name": "Verify Order - Invalid Order ID",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_number\": \"9999\",\n  \"email\": \"customer@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Verify Order - Invalid Email",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 404\", function () {",
+                  "    pm.response.to.have.status(404);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"wrong@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/orders/verify",
+              "host": ["{{base_url}}"],
+              "path": ["api", "orders", "verify"]
+            }
+          }
+        },
+        {
+          "name": "Create Return - Quantity Exceeds Purchased",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Throws quantity check validation error\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail).to.include(\"exceeds purchased quantity\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 15,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Too big\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/returns/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "returns", "create"]
+            }
+          }
+        },
+        {
+          "name": "Create Return - Damaged Product Missing Image",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Damaged check throws missing image code\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail).to.include(\"Image is required for damaged product returns\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Defective / Damaged\",\n      \"notes\": \"Sleeve seam torn open.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/returns/create",
+              "host": ["{{base_url}}"],
+              "path": ["api", "returns", "create"]
+            }
+          }
+        },
+        {
+          "name": "Upload Media - Reject Unsupported File Type",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 400\", function () {",
+                  "    pm.response.to.have.status(400);",
+                  "});",
+                  "pm.test(\"Verifies file type restriction warning\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.detail).to.include(\"Only JPEG, PNG, JPG, and WEBP\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "description": "Upload a PDF or non-image file here",
+                  "type": "file",
+                  "src": []
+                },
+                {
+                  "key": "order_id",
+                  "value": "{{order_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "product_id",
+                  "value": "item_01",
+                  "type": "text"
+                },
+                {
+                  "key": "reason",
+                  "value": "Defective / Damaged",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/uploads/return-image",
+              "host": ["{{base_url}}"],
+              "path": ["api", "uploads", "return-image"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Conversational LLM Agent",
+      "item": [
+        {
+          "name": "POST /api/agent/chat - Welcome message",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Agent welcome response structure valid\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.reply).to.include(\"Order Number\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"session_postman_123\",\n  \"history\": [],\n  \"message\": \"hello\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/agent/chat",
+              "host": ["{{base_url}}"],
+              "path": ["api", "agent", "chat"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/agent/chat - Provide verification details",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Agent verified order items successfully\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.reply).to.include(\"Denim Jacket\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"session_id\": \"session_postman_123\",\n  \"history\": [\n    { \"role\": \"assistant\", \"content\": \"Hi! I am your AI Return Assistant. Please provide your Order Number and Email to get started.\" },\n    { \"role\": \"user\", \"content\": \"hello\" }\n  ],\n  \"message\": \"Order #1001, customer@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/agent/chat",
+              "host": ["{{base_url}}"],
+              "path": ["api", "agent", "chat"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/agent/session/{session_id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "pm.test(\"Session verified memory values stored\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.success).to.be.true;",
+                  "    pm.expect(jsonData.data.order_number).to.eql(\"1001\");",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/agent/session/session_postman_123",
+              "host": ["{{base_url}}"],
+              "path": ["api", "agent", "session", "session_postman_123"]
+            }
+          }
+        },
+        {
+          "name": "DELETE /api/agent/session/{session_id}",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 200\", function () {",
+                  "    pm.response.to.have.status(200);",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/agent/session/session_postman_123",
+              "host": ["{{base_url}}"],
+              "path": ["api", "agent", "session", "session_postman_123"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

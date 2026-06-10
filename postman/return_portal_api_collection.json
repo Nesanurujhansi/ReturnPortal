@@ -1,0 +1,446 @@
+{
+  "info": {
+    "_postman_id": "b34e568b-a3d8-4f81-a6e5-3d96de5b81a8",
+    "name": "Return Portal API",
+    "description": "Collection of endpoints to test Return Portal API features (Order verify, reasons, uploads, creation, calculation).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "GET /api/health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "health"
+          ]
+        },
+        "description": "Checks backend API and database status."
+      },
+      "response": [
+        {
+          "name": "Health Status Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"status\": \"healthy\",\n  \"database\": \"connected\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "POST /api/orders/verify",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/orders/verify",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "orders",
+            "verify"
+          ]
+        },
+        "description": "Verifies that order details match customer email."
+      },
+      "response": [
+        {
+          "name": "Successful Verification Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"customer_name\": \"Alex Mercer\",\n  \"items\": [\n    {\n      \"id\": \"item_01\",\n      \"name\": \"Classic Denim Jacket\",\n      \"price\": 89.00,\n      \"quantity\": 1,\n      \"variant\": \"Indigo / Medium\",\n      \"image\": \"https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&q=80&w=300\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/orders/{order_id}/items",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/orders/{{order_id}}/items",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "orders",
+            "{{order_id}}",
+            "items"
+          ]
+        },
+        "description": "Retrieves products/line items from order."
+      },
+      "response": [
+        {
+          "name": "Items List Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"items\": [\n    {\n      \"line_item_id\": \"item_01\",\n      \"product_id\": \"7891230\",\n      \"variant_id\": \"9923842\",\n      \"title\": \"Classic Denim Jacket\",\n      \"sku\": \"JKT-DEN-001\",\n      \"quantity\": 1,\n      \"price\": 89.0,\n      \"tax\": 7.12,\n      \"image_url\": \"https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&q=80&w=300\"\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/products/{product_id}/variants",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/products/7891230/variants",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "products",
+            "7891230",
+            "variants"
+          ]
+        },
+        "description": "Retrieves product variants for exchange selection."
+      },
+      "response": [
+        {
+          "name": "Product Variants Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"variants\": [\n    {\n      \"variant_id\": \"9923842\",\n      \"title\": \"Indigo / Medium\",\n      \"option1\": \"Indigo\",\n      \"option2\": \"Medium\",\n      \"price\": 89.0,\n      \"available\": true\n    }\n  ]\n}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/orders/{order_id}/fulfillment",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/orders/{{order_id}}/fulfillment",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "orders",
+            "{{order_id}}",
+            "fulfillment"
+          ]
+        },
+        "description": "Retrieves order fulfillment status."
+      },
+      "response": [
+        {
+          "name": "Fulfillment Status Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"fulfillment_status\": \"fulfilled\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/return-methods",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/return-methods",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "return-methods"
+          ]
+        },
+        "description": "Returns available return options."
+      },
+      "response": [
+        {
+          "name": "Return Methods List Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "[\n  { \"id\": \"refund\", \"title\": \"Refund\", \"description\": \"Refund to original card (-$5.99 fee)\" },\n  { \"id\": \"credit\", \"title\": \"Store Credit\", \"description\": \"Get instant gift code (FREE)\" },\n  { \"id\": \"exchange\", \"title\": \"Exchange\", \"description\": \"Exchange for another variant (FREE)\" }\n]"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/return-reasons",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/return-reasons",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "return-reasons"
+          ]
+        },
+        "description": "Returns allowed return reasons."
+      },
+      "response": [
+        {
+          "name": "Return Reasons Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "[\n  \"Too Large\",\n  \"Too Small\",\n  \"Defective / Damaged\",\n  \"Changed my mind\"\n]"
+        }
+      ]
+    },
+    {
+      "name": "POST /api/uploads/return-image",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "file",
+              "description": "Image file verification placeholder (JPEG/PNG)",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{base_url}}/api/uploads/return-image",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "uploads",
+            "return-image"
+          ]
+        },
+        "description": "Upload return photo to MongoDB GridFS."
+      },
+      "response": [
+        {
+          "name": "Successful Upload Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"file_id\": \"60f7a637d402bf085c8e23f0\",\n  \"filename\": \"denim-fault.png\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "POST /api/returns/calculate",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\"\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/returns/calculate",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "returns",
+            "calculate"
+          ]
+        },
+        "description": "Runs calculation values on selected returns."
+      },
+      "response": [
+        {
+          "name": "Calculations Output Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_refund_amount\": 83.01,\n  \"method\": \"refund\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "POST /api/returns/create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Size is too large around shoulders.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/returns/create",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "returns",
+            "create"
+          ]
+        },
+        "description": "Registers return request in MongoDB collections."
+      },
+      "response": [
+        {
+          "name": "Return Request Created Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"success\": true,\n  \"return_id\": \"RET-987123\",\n  \"status\": \"Pending Review\",\n  \"tracking_number\": \"9400100000001234567890\",\n  \"carrier\": \"USPS\",\n  \"shipping_label_url\": \"https://shipping-carrier.com/labels/RET-987123.pdf\",\n  \"created_at\": \"2026-06-09T10:00:00.000Z\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/returns/{return_id}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/returns/{{return_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "returns",
+            "{{return_id}}"
+          ]
+        },
+        "description": "Retrieve return summary details."
+      },
+      "response": [
+        {
+          "name": "Return Details Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": "{\n  \"return_id\": \"RET-987123\",\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Size is too large around shoulders.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01,\n  \"status\": \"Pending Review\",\n  \"tracking_number\": \"9400100000001234567890\",\n  \"carrier\": \"USPS\",\n  \"created_at\": \"2026-06-09T10:00:00.000Z\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "GET /api/uploads/{file_id}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/uploads/images/{{file_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "uploads",
+            "images",
+            "{{file_id}}"
+          ]
+        },
+        "description": "Get file binary download from GridFS."
+      },
+      "response": [
+        {
+          "name": "Binary Image Stream Response Example",
+          "status": "OK",
+          "code": 200,
+          "header": [
+            { "key": "Content-Type", "value": "image/png" }
+          ],
+          "body": "<Binary File Bytes>"
+        }
+      ]
+    },
+    {
+      "name": "POST /api/agent/chat",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"session_id\": \"session_123\",\n  \"history\": [],\n  \"message\": \"I want to return order 1001 for customer@example.com\"\n}"
+        },
+        "url": {
+          "raw": "{{base_url}}/api/agent/chat",
+          "host": ["{{base_url}}"],
+          "path": ["api", "agent", "chat"]
+        },
+        "description": "Send a chat message to the Return LLM Agent."
+      }
+    },
+    {
+      "name": "GET /api/agent/session/{session_id}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/agent/session/session_123",
+          "host": ["{{base_url}}"],
+          "path": ["api", "agent", "session", "session_123"]
+        },
+        "description": "Fetch active session memory values."
+      }
+    },
+    {
+      "name": "DELETE /api/agent/session/{session_id}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/agent/session/session_123",
+          "host": ["{{base_url}}"],
+          "path": ["api", "agent", "session", "session_123"]
+        },
+        "description": "Delete conversational session memory state."
+      }
+    }
+  ]
+}
+

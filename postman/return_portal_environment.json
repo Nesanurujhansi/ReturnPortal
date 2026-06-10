@@ -1,0 +1,57 @@
+{
+  "id": "76df1733-8ad5-4a6c-9be2-4638706fe547",
+  "name": "Return Portal Environment",
+  "values": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "order_id",
+      "value": "1001",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "customer_email",
+      "value": "customer@example.com",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "return_id",
+      "value": "RET-XXXXXX",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "file_id",
+      "value": "XXXXXX",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "shopify_store_url",
+      "value": "your-store.myshopify.com",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "shopify_access_token",
+      "value": "shpat_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "type": "default",
+      "enabled": true
+    },
+    {
+      "key": "shopify_api_version",
+      "value": "2024-04",
+      "type": "default",
+      "enabled": true
+    }
+  ],
+  "_postman_variable_scope": "environment",
+  "_postman_exported_at": "2026-06-09T09:47:00.000Z",
+  "_postman_exported_by": "Antigravity Agent"
+}
