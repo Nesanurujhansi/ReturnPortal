@@ -189,14 +189,23 @@ function App() {
           <button
             className={`tab-btn ${activeTab === "portal" ? "active" : ""}`}
             onClick={() => setActiveTab("portal")}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            📋 Return Portal Form
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+            </svg>
+            Return Portal Form
           </button>
           <button
             className={`tab-btn ${activeTab === "agent" ? "active" : ""}`}
             onClick={() => setActiveTab("agent")}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
           >
-            💬 AI Return Assistant
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: "8px" }}>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            AI Return Assistant
           </button>
         </div>
       )}

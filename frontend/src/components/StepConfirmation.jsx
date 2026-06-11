@@ -94,6 +94,31 @@ export default function StepConfirmation({
     );
   }
 
+  const renderMethodIcon = (methodId) => {
+    if (methodId === "refund") {
+      return (
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="svg-icon">
+          <rect x="2" y="5" width="20" height="14" rx="2" ry="2" />
+          <path d="M12 9a2.5 2.5 0 1 0 0 5 2.5 2.5 0 1 0 0-5z" />
+        </svg>
+      );
+    }
+    if (methodId === "credit") {
+      return (
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="svg-icon">
+          <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+          <line x1="1" y1="10" x2="23" y2="10" />
+        </svg>
+      );
+    }
+    return (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="svg-icon">
+        <path d="M21.5 2v6h-6" />
+        <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l.57-.57" />
+      </svg>
+    );
+  };
+
   return (
     <div className="card anim-fade-in">
       <h2>Confirm Return Details</h2>
@@ -104,8 +129,8 @@ export default function StepConfirmation({
       <div className="confirm-section">
         <h3>Return Method</h3>
         <div className="confirm-method-badge">
-          <span className="icon">
-            {method === "refund" ? "💵" : method === "credit" ? "💳" : "🔄"}
+          <span className="icon" style={{ display: "inline-flex", alignItems: "center" }}>
+            {renderMethodIcon(method)}
           </span>
           <div>
             <strong>{getMethodLabel()}</strong>
@@ -139,8 +164,12 @@ export default function StepConfirmation({
                       <p className="text-sm text-italic">Reason: {reasonInfo.reason}</p>
                     )}
                     {exchangeInfo && (
-                      <div className="exchange-tag">
-                        🔄 Exchange For: {exchangeInfo.color} / {exchangeInfo.size}
+                      <div className="exchange-tag" style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: "inline-block" }}>
+                          <path d="M21.5 2v6h-6" />
+                          <path d="M21.34 15.57a10 10 0 1 1-.57-8.38l.57-.57" />
+                        </svg>
+                        Exchange For: {exchangeInfo.color} / {exchangeInfo.size}
                       </div>
                     )}
                   </div>
