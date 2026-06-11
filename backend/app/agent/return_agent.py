@@ -131,6 +131,16 @@ class ReturnAgent:
                 response = self.llm.invoke(messages)
             
             reply = response.content
+            if isinstance(reply, list):
+                parts = []
+                for part in reply:
+                    if isinstance(part, dict) and "text" in part:
+                        parts.append(part["text"])
+                    elif isinstance(part, str):
+                        parts.append(part)
+                reply = "\n".join(parts)
+            elif isinstance(reply, dict) and "text" in reply:
+                reply = reply["text"]
 
             # Parse simple text replies to extract notes/quantities if LLM bypassed tools
             self._heuristically_update_memory(session, text)
