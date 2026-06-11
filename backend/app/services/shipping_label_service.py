@@ -23,7 +23,7 @@ class ShippingLabelService:
             "label_number": label_number,
             "tracking_number": tracking_number,
             "carrier": carrier,
-            "shipping_label_url": f"https://shipping-carrier.com/labels/{return_id}.pdf"
+            "shipping_label_url": f"http://localhost:8000/api/labels/{return_id}.pdf"
         }
 
         if db.shipping_labels is not None:

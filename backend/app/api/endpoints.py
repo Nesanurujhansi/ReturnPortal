@@ -447,3 +447,26 @@ async def get_order_fulfillment(order_id: str):
         "fulfillment_status": status_val or "unfulfilled"
     }
 
+@router.get("/labels/{return_id}.pdf")
+async def download_shipping_label_pdf(return_id: str):
+    """Serves a simulated return shipping label PDF document."""
+    from fastapi.responses import Response
+    
+    # Simple valid PDF binary structure
+    pdf_content = (
+        b"%PDF-1.4\n"
+        b"1 0 obj\n<< /Title (Return Shipping Label) /Creator (FastAPI Return Portal) >>\nendobj\n"
+        b"2 0 obj\n<< /Type /Catalog /Pages 3 0 R >>\nendobj\n"
+        b"3 0 obj\n<< /Type /Pages /Kids [4 0 R] /Count 1 >>\nendobj\n"
+        b"4 0 obj\n<< /Type /Page /Parent 3 0 R /MediaBox [0 0 612 792] /Contents 5 0 R /Resources << >> >>\nendobj\n"
+        b"5 0 obj\n<< /Length 65 >>\nstream\n"
+        b"BT\n/F1 24 Tf\n100 700 Td\n(Prepaid USPS Shipping Label for " + return_id.encode('utf-8') + b") Tj\nET\n"
+        b"endstream\n"
+        b"endobj\n"
+        b"xref\n0 6\n0000000000 65535 f\n0000000009 00000 n\n0000000094 00000 n\n0000000143 00000 n\n0000000199 00000 n\n0000000306 00000 n\ntrailer\n<< /Size 6 >>\nstartxref\n422\n%%EOF"
+    )
+    return Response(content=pdf_content, media_type="application/pdf", headers={
+        "Content-Disposition": f"attachment; filename=shipping_label_{return_id}.pdf"
+    })
+
+
