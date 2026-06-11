@@ -385,6 +385,20 @@ async def get_return_request(return_id: str):
                     for i in db_items
                 ]
 
+                # Retrieve matching label if exists
+                tracking_number = "9400100000000000000000"
+                carrier = "USPS"
+                shipping_label_url = f"http://localhost:8000/api/labels/{return_id}.pdf"
+                
+                if db.shipping_labels is not None:
+                    label = await db.shipping_labels.find_one({"return_id": return_id})
+                    if label:
+                        tracking_number = label.get("tracking_number") or tracking_number
+                        carrier = label.get("carrier") or carrier
+                        raw_url = label.get("shipping_label_url", "")
+                        if raw_url and "shipping-carrier.com" not in raw_url:
+                            shipping_label_url = raw_url
+
                 return ReturnDetailResponse(
                     return_id=ret["return_id"],
                     order_number=ret["order_number"],
@@ -395,8 +409,9 @@ async def get_return_request(return_id: str):
                     handling_fee=ret["handling_fee"],
                     total_amount=ret["total_amount"],
                     status=ret["status"],
-                    tracking_number="9400100000000000000000",  # Default or loaded
-                    carrier="USPS",
+                    tracking_number=tracking_number,
+                    carrier=carrier,
+                    shipping_label_url=shipping_label_url,
                     created_at=ret["created_at"]
                 )
         except Exception as e:

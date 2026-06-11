@@ -71,4 +71,5 @@ class ReturnDetailResponse(BaseModel):
     status: str
     tracking_number: str
     carrier: str
+    shipping_label_url: Optional[str] = None
     created_at: str
