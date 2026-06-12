@@ -32,16 +32,16 @@ class ReturnAgent:
         
         # Wrap tool functions as LangChain StructuredTools
         self.tools = [
-            StructuredTool.from_function(verify_order_tool),
-            StructuredTool.from_function(get_order_items_tool),
-            StructuredTool.from_function(get_return_methods_tool),
-            StructuredTool.from_function(get_return_reasons_tool),
-            StructuredTool.from_function(upload_image_guidance_tool),
-            StructuredTool.from_function(calculate_return_tool),
-            StructuredTool.from_function(get_product_variants_tool),
-            StructuredTool.from_function(create_return_request_tool),
-            StructuredTool.from_function(get_return_status_tool),
-            StructuredTool.from_function(update_return_session_details_tool),
+            StructuredTool.from_function(func=verify_order_tool, coroutine=verify_order_tool),
+            StructuredTool.from_function(func=get_order_items_tool, coroutine=get_order_items_tool),
+            StructuredTool.from_function(func=get_return_methods_tool, coroutine=get_return_methods_tool),
+            StructuredTool.from_function(func=get_return_reasons_tool, coroutine=get_return_reasons_tool),
+            StructuredTool.from_function(func=upload_image_guidance_tool, coroutine=upload_image_guidance_tool),
+            StructuredTool.from_function(func=calculate_return_tool, coroutine=calculate_return_tool),
+            StructuredTool.from_function(func=get_product_variants_tool, coroutine=get_product_variants_tool),
+            StructuredTool.from_function(func=create_return_request_tool, coroutine=create_return_request_tool),
+            StructuredTool.from_function(func=get_return_status_tool, coroutine=get_return_status_tool),
+            StructuredTool.from_function(func=update_return_session_details_tool, coroutine=update_return_session_details_tool),
         ]
         self.tools_map = {t.name: t for t in self.tools}
 
@@ -96,7 +96,7 @@ class ReturnAgent:
             max_iterations = 5
             iteration = 0
             
-            response = self.llm.invoke(messages)
+            response = await self.llm.ainvoke(messages)
             
             while response.tool_calls and iteration < max_iterations:
                 iteration += 1
@@ -110,7 +110,7 @@ class ReturnAgent:
                     
                     if tool_obj:
                         logger.info(f"Agent session_id={session_id} calling tool={tool_name} args={tool_args}")
-                        tool_res = tool_obj.invoke(tool_args)
+                        tool_res = await tool_obj.ainvoke(tool_args)
                         
                         # Update session memory based on tool outputs
                         self._sync_memory_from_tool(session, tool_name, tool_args, tool_res)
@@ -128,7 +128,7 @@ class ReturnAgent:
                         ))
                 
                 messages.extend(tool_messages)
-                response = self.llm.invoke(messages)
+                response = await self.llm.ainvoke(messages)
             
             reply = response.content
             if isinstance(reply, list):
@@ -243,7 +243,7 @@ class ReturnAgent:
             ret_match = re.search(r"ret-\d{6}", text)
             if ret_match:
                 ret_id = ret_match.group(0).upper()
-                res_str = get_return_status_tool(ret_id)
+                res_str = await get_return_status_tool(ret_id)
                 res = json.loads(res_str)
                 if res.get("success"):
                     info = res["status"]
@@ -260,14 +260,14 @@ class ReturnAgent:
             if order_match and email_match:
                 order_num = order_match.group(0)
                 email_val = email_match.group(0)
-                verify_res = json.loads(verify_order_tool(order_num, email_val))
+                verify_res = json.loads(await verify_order_tool(order_num, email_val))
                 
                 if verify_res.get("success"):
                     session["order_number"] = order_num
                     session["email"] = email_val
                     session["order_id"] = verify_res["order_id"]
                     
-                    items_str = "\n".join([f"- **{i['title']}** (ID: {i['line_item_id']}, Price: ${i['price']:.2f}, Qty: {i['quantity']})" for i in json.loads(get_order_items_tool(verify_res["order_id"]))["items"]])
+                    items_str = "\n".join([f"- **{i['title']}** (ID: {i['line_item_id']}, Price: ${i['price']:.2f}, Qty: {i['quantity']})" for i in json.loads(await get_order_items_tool(verify_res["order_id"]))["items"]])
                     return f"Thank you, order verified! Welcome, {verify_res['customer_name']}.\n\nItems in your order:\n{items_str}\n\nPlease let me know which product you'd like to return (e.g. jacket or tee) and the method: **Refund**, **Store Credit**, or **Exchange**."
                 else:
                     return "Order not found or email does not match."
@@ -286,7 +286,7 @@ class ReturnAgent:
                 method = "exchange"
 
             # Check items from Shopify
-            items_res = json.loads(get_order_items_tool(session["order_id"]))
+            items_res = json.loads(await get_order_items_tool(session["order_id"]))
             selected_item = None
             for item in items_res.get("items", []):
                 title = item["title"].lower()
@@ -328,7 +328,7 @@ class ReturnAgent:
             if reason:
                 session["return_reason"] = reason
                 # check guidance
-                requires_img = json.loads(upload_image_guidance_tool(reason))["requires_image"]
+                requires_img = json.loads(await upload_image_guidance_tool(reason))["requires_image"]
                 if requires_img:
                     return f"You selected '{reason}'. This reason requires a descriptive note and a verification image. Please upload a photo and describe the issue."
             else:
@@ -357,12 +357,12 @@ class ReturnAgent:
         # 7. Exchange variant select
         if session["return_method"] == "exchange" and not session["exchange_variant"]:
             # Load variants list
-            items_res = json.loads(get_order_items_tool(session["order_id"]))
+            items_res = json.loads(await get_order_items_tool(session["order_id"]))
             sel_item = next((i for i in items_res.get("items", []) if i["line_item_id"] == session["selected_product"]), None)
             
             if sel_item:
                 prod_id = sel_item["product_id"]
-                variants_res = json.loads(get_product_variants_tool(prod_id))
+                variants_res = json.loads(await get_product_variants_tool(prod_id))
                 variants = variants_res.get("variants", [])
                 
                 # Check if variant exists in input
@@ -381,7 +381,7 @@ class ReturnAgent:
 
         # 8. Confirmation and calculate summary
         # Trigger calculate first
-        calc_res = json.loads(calculate_return_tool(
+        calc_res = json.loads(await calculate_return_tool(
             session["order_id"],
             session["selected_product"],
             session["quantity"],
@@ -399,7 +399,7 @@ class ReturnAgent:
         # Confirm step
         if "confirm" in text or "yes" in text or "submit" in text:
             # Create return
-            create_res = json.loads(create_return_request_tool(
+            create_res = json.loads(await create_return_request_tool(
                 session["order_id"],
                 session["email"],
                 session["selected_product"],
@@ -416,7 +416,7 @@ class ReturnAgent:
                 memory_store.clear_session(session_id)
                 return f"Success! Your return request **{create_res['return_id']}** has been created. Tracking number: **{create_res['tracking_number']}** via {create_res['carrier']}."
             else:
-                return f"Return submission failed: {create_res.get('detail', 'Unknown validation error.')}"
+                return f"Return submission failed: {create_res.get('detail') or create_res.get('message') or 'Unknown validation error.'}"
 
         summary_msg = f"Summary: Subtotal is ${subtotal:.2f}, fee is ${fee:.2f}. Total return value: ${total:.2f}."
         if session["return_method"] == "exchange":

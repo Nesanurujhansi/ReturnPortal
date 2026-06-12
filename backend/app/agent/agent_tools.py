@@ -1,40 +1,18 @@
 import json
 import logging
-import asyncio
 from app.services.shopify_service import ShopifyService
 from app.services.return_calculation_service import ReturnCalculationService
 from app.services.status_service import StatusService
 from app.database.mongodb import db
-from app.models.schemas import ReturnItemSelection, ReturnCreateRequest
+from app.models.schemas import ReturnCreateRequest
 from app.api.endpoints import create_return_request
 
 logger = logging.getLogger("app.agent.tools")
 
-def _run_async(coro):
-    """Safely runs a coroutine even if an event loop is already running in the current thread (e.g. Uvicorn)."""
-    try:
-        loop = asyncio.get_running_loop()
-        if loop.is_running():
-            # If loop is already running, schedule the task and wait for it synchronously using a future
-            import concurrent.futures
-            with concurrent.futures.ThreadPoolExecutor() as executor:
-                future = executor.submit(lambda: asyncio.run(coro))
-                return future.result()
-    except RuntimeError:
-        pass
-    
-    # If no running loop, create/run one directly
-    new_loop = asyncio.new_event_loop()
-    try:
-        asyncio.set_event_loop(new_loop)
-        return new_loop.run_until_complete(coro)
-    finally:
-        new_loop.close()
-
-def verify_order_tool(order_number: str, email: str) -> str:
+async def verify_order_tool(order_number: str, email: str) -> str:
     """Verify order using Shopify API."""
     try:
-        order = _run_async(ShopifyService.verify_order(order_number, email))
+        order = await ShopifyService.verify_order(order_number, email)
         if order:
             customer_name = "Valued Customer"
             cust = order.get("customer")
@@ -53,10 +31,10 @@ def verify_order_tool(order_number: str, email: str) -> str:
         logger.error(f"verify_order_tool error: {e}")
         return json.dumps({"success": False, "message": str(e)})
 
-def get_order_items_tool(order_id: str) -> str:
+async def get_order_items_tool(order_id: str) -> str:
     """Fetch returnable line items."""
     try:
-        items = _run_async(ShopifyService.get_order_items(order_id))
+        items = await ShopifyService.get_order_items(order_id)
         normalized = []
         for line in items:
             normalized.append({
@@ -73,55 +51,47 @@ def get_order_items_tool(order_id: str) -> str:
         logger.error(f"get_order_items_tool error: {e}")
         return json.dumps({"success": False, "message": str(e)})
 
-def get_return_methods_tool() -> str:
+async def get_return_methods_tool() -> str:
     """List Refund, Store Credit, Exchange return methods."""
     try:
-        async def fetch_methods():
-            cursor = db.return_methods.find({"active": True})
-            methods = await cursor.to_list(length=10)
-            return [m["method"] for m in methods]
-        methods_list = _run_async(fetch_methods())
+        cursor = db.return_methods.find({"active": True})
+        methods = await cursor.to_list(length=10)
+        methods_list = [m["method"] for m in methods]
         return json.dumps({"success": True, "methods": methods_list})
     except Exception as e:
         logger.error(f"get_return_methods_tool error: {e}")
         return json.dumps({"success": True, "methods": ["refund", "credit", "exchange"]})
 
-def get_return_reasons_tool() -> str:
+async def get_return_reasons_tool() -> str:
     """List return reasons and their validation requirements."""
     try:
-        async def fetch_reasons():
-            cursor = db.return_reasons.find({})
-            reasons = await cursor.to_list(length=20)
-            return [
-                {
-                    "reason": r["reason"],
-                    "requires_image": r.get("requires_image", False),
-                    "requires_notes": r.get("requires_notes", False),
-                    "requires_additional_reason": r.get("requires_additional_reason", False)
-                }
-                for r in reasons
-            ]
-        reasons_list = _run_async(fetch_reasons())
+        cursor = db.return_reasons.find({})
+        reasons = await cursor.to_list(length=20)
+        reasons_list = [
+            {
+                "reason": r["reason"],
+                "requires_image": r.get("requires_image", False),
+                "requires_notes": r.get("requires_notes", False),
+                "requires_additional_reason": r.get("requires_additional_reason", False)
+            }
+            for r in reasons
+        ]
         return json.dumps({"success": True, "reasons": reasons_list})
     except Exception as e:
         logger.error(f"get_return_reasons_tool error: {e}")
         return json.dumps({"success": False, "message": str(e)})
 
-def upload_image_guidance_tool(reason: str) -> str:
+async def upload_image_guidance_tool(reason: str) -> str:
     """Tell user whether image is required for a return reason."""
     try:
-        async def check_reason():
-            rule = await db.return_reasons.find_one({"reason": reason})
-            if not rule:
-                # case insensitive match try
-                async for r in db.return_reasons.find({}):
-                    if r["reason"].lower() == reason.lower():
-                        rule = r
-                        break
-            if rule:
-                return rule.get("requires_image", False)
-            return "damaged" in reason.lower() or "defective" in reason.lower()
-        requires = _run_async(check_reason())
+        rule = await db.return_reasons.find_one({"reason": reason})
+        if not rule:
+            # case insensitive match try
+            async for r in db.return_reasons.find({}):
+                if r["reason"].lower() == reason.lower():
+                    rule = r
+                    break
+        requires = rule.get("requires_image", False) if rule else ("damaged" in reason.lower() or "defective" in reason.lower())
         return json.dumps({"success": True, "reason": reason, "requires_image": requires})
     except Exception as e:
         logger.error(f"upload_image_guidance_tool error: {e}")
@@ -137,16 +107,16 @@ def _resolve_line_item_id(product_id_or_line_id: str, order_items: list) -> str:
             return str(item["id"])
     return pid
 
-def calculate_return_tool(order_id: str, product_id: str, quantity: int, return_method: str, reason: str) -> str:
+async def calculate_return_tool(order_id: str, product_id: str, quantity: int, return_method: str, reason: str) -> str:
     """Calculate refund/store credit/exchange summary."""
     try:
-        order = _run_async(ShopifyService.get_order_details(order_id))
+        order = await ShopifyService.get_order_details(order_id)
         if not order:
             return json.dumps({"success": False, "message": "Order not found."})
         order_items = order.get("line_items", [])
         resolved_item_id = _resolve_line_item_id(product_id, order_items)
         items_list = [{"item_id": resolved_item_id, "quantity": quantity}]
-        summary = _run_async(ReturnCalculationService.calculate(return_method, items_list, order_items))
+        summary = await ReturnCalculationService.calculate(return_method, items_list, order_items)
         return json.dumps({
             "success": True,
             "subtotal": summary["subtotal"],
@@ -158,10 +128,10 @@ def calculate_return_tool(order_id: str, product_id: str, quantity: int, return_
         logger.error(f"calculate_return_tool error: {e}")
         return json.dumps({"success": False, "message": str(e)})
 
-def get_product_variants_tool(product_id: str) -> str:
+async def get_product_variants_tool(product_id: str) -> str:
     """Fetch Shopify variants for exchange."""
     try:
-        variants = _run_async(ShopifyService.get_product_variants(product_id))
+        variants = await ShopifyService.get_product_variants(product_id)
         normalized = []
         for var in variants:
             normalized.append({
@@ -175,7 +145,7 @@ def get_product_variants_tool(product_id: str) -> str:
         logger.error(f"get_product_variants_tool error: {e}")
         return json.dumps({"success": False, "message": str(e)})
 
-def create_return_request_tool(
+async def create_return_request_tool(
     order_id: str,
     email: str,
     product_id: str,
@@ -189,7 +159,7 @@ def create_return_request_tool(
     """Create return request using existing backend workflow."""
     try:
         # Get order details to look up order_number
-        order = _run_async(ShopifyService.get_order_details(order_id))
+        order = await ShopifyService.get_order_details(order_id)
         if not order:
             return json.dumps({"success": False, "message": "Order not found."})
         order_number = order.get("name", "").replace("#", "")
@@ -198,7 +168,7 @@ def create_return_request_tool(
         order_items = order.get("line_items", [])
         resolved_item_id = _resolve_line_item_id(product_id, order_items)
         items_list = [{"item_id": resolved_item_id, "quantity": quantity}]
-        summary = _run_async(ReturnCalculationService.calculate(return_method, items_list, order_items))
+        summary = await ReturnCalculationService.calculate(return_method, items_list, order_items)
 
         # Format items payload
         items_payload = [{
@@ -221,7 +191,7 @@ def create_return_request_tool(
             total_amount=summary["total"]
         )
 
-        res = _run_async(create_return_request(payload))
+        res = await create_return_request(payload)
         return json.dumps({
             "success": True,
             "return_id": res.return_id,
@@ -235,10 +205,10 @@ def create_return_request_tool(
         logger.error(f"create_return_request_tool error: {e}")
         return json.dumps({"success": False, "message": str(e)})
 
-def get_return_status_tool(return_id: str) -> str:
+async def get_return_status_tool(return_id: str) -> str:
     """Fetch return request status."""
     try:
-        status_info = _run_async(StatusService.get_return_status(return_id))
+        status_info = await StatusService.get_return_status(return_id)
         if status_info:
             return json.dumps({"success": True, "status": status_info})
         return json.dumps({"success": False, "message": "Return request not found."})
@@ -246,7 +216,7 @@ def get_return_status_tool(return_id: str) -> str:
         logger.error(f"get_return_status_tool error: {e}")
         return json.dumps({"success": False, "message": str(e)})
 
-def update_return_session_details_tool(
+async def update_return_session_details_tool(
     product_id: str = None,
     quantity: int = None,
     return_method: str = None,
@@ -272,5 +242,3 @@ def update_return_session_details_tool(
         })
     except Exception as e:
         return json.dumps({"success": False, "message": str(e)})
-
-
