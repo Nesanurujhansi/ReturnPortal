@@ -127,6 +127,16 @@ def upload_image_guidance_tool(reason: str) -> str:
         logger.error(f"upload_image_guidance_tool error: {e}")
         return json.dumps({"success": False, "message": str(e)})
 
+def _resolve_line_item_id(product_id_or_line_id: str, order_items: list) -> str:
+    """Resolves product_id or variant_id to the actual Shopify line item id (e.g. 'item_01')."""
+    pid = str(product_id_or_line_id).strip()
+    for item in order_items:
+        if (str(item.get("id")) == pid or 
+            str(item.get("product_id")) == pid or 
+            str(item.get("variant_id")) == pid):
+            return str(item["id"])
+    return pid
+
 def calculate_return_tool(order_id: str, product_id: str, quantity: int, return_method: str, reason: str) -> str:
     """Calculate refund/store credit/exchange summary."""
     try:
@@ -134,7 +144,8 @@ def calculate_return_tool(order_id: str, product_id: str, quantity: int, return_
         if not order:
             return json.dumps({"success": False, "message": "Order not found."})
         order_items = order.get("line_items", [])
-        items_list = [{"item_id": product_id, "quantity": quantity}]
+        resolved_item_id = _resolve_line_item_id(product_id, order_items)
+        items_list = [{"item_id": resolved_item_id, "quantity": quantity}]
         summary = _run_async(ReturnCalculationService.calculate(return_method, items_list, order_items))
         return json.dumps({
             "success": True,
@@ -185,12 +196,13 @@ def create_return_request_tool(
 
         # Call calculator to get subtotals/fees
         order_items = order.get("line_items", [])
-        items_list = [{"item_id": product_id, "quantity": quantity}]
+        resolved_item_id = _resolve_line_item_id(product_id, order_items)
+        items_list = [{"item_id": resolved_item_id, "quantity": quantity}]
         summary = _run_async(ReturnCalculationService.calculate(return_method, items_list, order_items))
 
         # Format items payload
         items_payload = [{
-            "item_id": product_id,
+            "item_id": resolved_item_id,
             "quantity": quantity,
             "reason": reason,
             "notes": notes,
