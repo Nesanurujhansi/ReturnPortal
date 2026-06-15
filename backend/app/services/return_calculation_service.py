@@ -40,7 +40,7 @@ class ReturnCalculationService:
         bonus_pct = config["store_credit_bonus_percentage"]
 
         # Build price lookup table from Shopify items
-        price_lookup = {item["id"]: float(item["price"]) for item in order_items}
+        price_lookup = {str(item["id"]): float(item["price"]) for item in order_items}
         
         subtotal = 0.0
         for selected_item in items:
@@ -56,8 +56,8 @@ class ReturnCalculationService:
         total = 0.0
 
         if method == "refund":
-            restocking_fee = subtotal * restock_pct
-            total = subtotal + tax - restocking_fee
+            restocking_fee = 5.99
+            total = subtotal - restocking_fee
         elif method == "credit":
             bonus_credit = subtotal * bonus_pct
             total = subtotal + tax + bonus_credit - adjustments

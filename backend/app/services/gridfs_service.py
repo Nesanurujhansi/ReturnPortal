@@ -54,7 +54,7 @@ class GridFSService:
         if db.fs is not None:
             try:
                 # Open upload stream
-                grid_in = await db.fs.open_upload_stream(
+                grid_in = db.fs.open_upload_stream(
                     filename=file.filename,
                     metadata=meta_doc
                 )

@@ -118,6 +118,17 @@ async def seed_database_configs():
             }
         ])
 
+    # Ensure Defective / Damaged is present
+    defective_damaged_exists = await db.return_reasons.count_documents({"reason": "Defective / Damaged"})
+    if defective_damaged_exists == 0:
+        await db.return_reasons.insert_one({
+            "_id": "defective_damaged",
+            "reason": "Defective / Damaged",
+            "requires_image": True,
+            "requires_notes": True,
+            "requires_additional_reason": False
+        })
+
     # 3. Seed Global Settings
     settings_count = await db.settings_col.count_documents({})
     if settings_count == 0:

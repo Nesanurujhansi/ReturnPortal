@@ -418,7 +418,7 @@
                   "key": "file",
                   "description": "Choose local testing image",
                   "type": "file",
-                  "src": []
+                  "src": "dummy.png"
                 },
                 {
                   "key": "order_id",
@@ -664,7 +664,7 @@
                   "key": "file",
                   "description": "Upload a PDF or non-image file here",
                   "type": "file",
-                  "src": []
+                  "src": "dummy.txt"
                 },
                 {
                   "key": "order_id",
