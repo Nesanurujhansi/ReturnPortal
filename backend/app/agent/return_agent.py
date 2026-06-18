@@ -67,7 +67,7 @@ class ReturnAgent:
         
         # Fallback simulated engine check
         if not self.llm:
-            reply = await self._run_simulated_agent(session_id, session, text)
+            reply = await self._run_simulated_agent(session_id, session, text, user_message)
             next_action = self._determine_next_action(session)
             options = await self._get_options_for_action(session, next_action)
             return {
@@ -159,7 +159,7 @@ class ReturnAgent:
         except Exception as e:
             logger.error(f"Gemini agent run_chat error: {e}")
             # Fallback to simulated handler on error
-            reply = await self._run_simulated_agent(session_id, session, text)
+            reply = await self._run_simulated_agent(session_id, session, text, user_message)
             next_action = self._determine_next_action(session)
             options = await self._get_options_for_action(session, next_action)
             return {
@@ -237,7 +237,7 @@ class ReturnAgent:
                 return "collect_image"
         return "confirm_return"
 
-    async def _run_simulated_agent(self, session_id: str, session: Dict[str, Any], text: str) -> str:
+    async def _run_simulated_agent(self, session_id: str, session: Dict[str, Any], text: str, original_text: str) -> str:
         # 1. Reset / restart check
         if "reset" in text or "restart" in text or "start over" in text or "cancel" in text:
             memory_store.clear_session(session_id)
@@ -346,7 +346,7 @@ class ReturnAgent:
             # Check notes
             if not session["notes"]:
                 if len(text) > 8 and "damaged" not in text and "return" not in text and "confirm" not in text:
-                    session["notes"] = user_message
+                    session["notes"] = original_text
                 else:
                     return "Notes are required for this return reason. Please provide a brief description."
             
