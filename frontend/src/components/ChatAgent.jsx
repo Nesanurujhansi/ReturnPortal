@@ -6,7 +6,8 @@ export default function ChatAgent() {
   const [messages, setMessages] = useState([
     {
       role: "assistant",
-      content: "Hi! I am your AI Return Assistant. Please provide your **Order Number** and **Email** to get started."
+      content: "Hi! I am your AI Return Assistant. Please provide your **Order Number** and **Email** to get started.",
+      options: []
     }
   ]);
   const [input, setInput] = useState("");
@@ -41,14 +42,33 @@ export default function ChatAgent() {
     if (!messageToSend.trim() || loading) return;
 
     const userMsg = { role: "user", content: messageToSend };
-    setMessages((prev) => [...prev, userMsg]);
+    
+    // Disable any options on previous messages
+    setMessages((prev) => {
+      const copy = prev.map((m, i) => {
+        if (i === prev.length - 1 && m.role === "assistant") {
+          return { ...m, optionsDisabled: true };
+        }
+        return m;
+      });
+      return [...copy, userMsg];
+    });
+    
     setInput("");
     setLoading(true);
 
     try {
       // Fetch response from API
       const result = await chatWithAgent(sessionId, messages, userMsg.content);
-      setMessages((prev) => [...prev, { role: "assistant", content: result.reply }]);
+      setMessages((prev) => [
+        ...prev,
+        { 
+          role: "assistant", 
+          content: result.reply,
+          options: result.options || [],
+          optionsDisabled: false
+        }
+      ]);
       setNextAction(result.next_action);
       await fetchSessionStatus();
     } catch (err) {
@@ -61,6 +81,15 @@ export default function ChatAgent() {
     }
   };
 
+  const handleOptionClick = (msgIdx, option) => {
+    setMessages((prev) => {
+      const copy = [...prev];
+      copy[msgIdx] = { ...copy[msgIdx], optionsDisabled: true };
+      return copy;
+    });
+    handleSend(null, option);
+  };
+
   const handleReset = async () => {
     setLoading(true);
     try {
@@ -68,7 +97,8 @@ export default function ChatAgent() {
       setMessages([
         {
           role: "assistant",
-          content: "Hi! I am your AI Return Assistant. Please provide your **Order Number** and **Email** to get started."
+          content: "Hi! I am your AI Return Assistant. Please provide your **Order Number** and **Email** to get started.",
+          options: []
         }
       ]);
       setNextAction("collect_order_details");
@@ -77,87 +107,6 @@ export default function ChatAgent() {
       console.error(err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getSuggestedActionButtons = () => {
-    if (loading) return null;
-    
-    switch (nextAction) {
-      case "collect_order_details":
-        return (
-          <div className="suggested-actions">
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Order #1001, customer@example.com")}>
-              Try Demo Order #1001
-            </button>
-          </div>
-        );
-      case "select_product":
-        return (
-          <div className="suggested-actions">
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Return Classic Denim Jacket")}>
-              Classic Denim Jacket
-            </button>
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Return Premium Cotton Tee")}>
-              Premium Cotton Tee
-            </button>
-          </div>
-        );
-      case "select_return_method":
-        return (
-          <div className="suggested-actions">
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Refund")}>
-              Refund (Original Payment)
-            </button>
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Store Credit")}>
-              Store Credit
-            </button>
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Exchange")}>
-              Exchange
-            </button>
-          </div>
-        );
-      case "select_return_reason":
-        return (
-          <div className="suggested-actions">
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Changed Mind")}>
-              Changed Mind
-            </button>
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Size Didn't Fit")}>
-              Size Didn't Fit
-            </button>
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "Damaged Product")}>
-              Damaged Product (Requires Note/Photo)
-            </button>
-          </div>
-        );
-      case "collect_notes":
-        return (
-          <div className="suggested-actions">
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "The size is way too big.")}>
-              Explain: Too big
-            </button>
-          </div>
-        );
-      case "collect_image":
-        return (
-          <div className="suggested-actions text-xs text-gray" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            <span>Please upload an image in the form and copy/paste file ID:</span>
-            <button className="btn btn-secondary text-xs" onClick={() => handleSend(null, "file_id " + (sessionData?.image_file_id || "file_id_placeholder"))}>
-              Submit file_id: {sessionData?.image_file_id || "None (Upload First)"}
-            </button>
-          </div>
-        );
-      case "confirm_return":
-        return (
-          <div className="suggested-actions">
-            <button className="btn btn-primary text-xs" onClick={() => handleSend(null, "confirm")}>
-              Confirm & Submit Return
-            </button>
-          </div>
-        );
-      default:
-        return null;
     }
   };
 
@@ -184,16 +133,35 @@ export default function ChatAgent() {
 
       <div className="chat-messages">
         {messages.map((msg, idx) => (
-          <div key={idx} className={`chat-bubble-wrapper ${msg.role}`}>
-            <div className={`chat-bubble ${msg.role}`}>
-              {String(msg.content || "").split("\n").map((line, lIdx) => (
-                <p key={lIdx} style={{ margin: "4px 0" }}>
-                  {line}
-                </p>
-              ))}
+          <div key={idx} className="chat-message-group" style={{ marginBottom: "12px" }}>
+            <div className={`chat-bubble-wrapper ${msg.role}`}>
+              <div className={`chat-bubble ${msg.role}`}>
+                {String(msg.content || "").split("\n").map((line, lIdx) => (
+                  <p key={lIdx} style={{ margin: "4px 0" }}>
+                    {line}
+                  </p>
+                ))}
+              </div>
             </div>
+            
+            {msg.role === "assistant" && msg.options && msg.options.length > 0 && (
+              <div className="chat-options-container" style={{ display: "flex", flexWrap: "wrap", gap: "8px", margin: "8px 0 4px 12px" }}>
+                {msg.options.map((opt, oIdx) => (
+                  <button
+                    key={oIdx}
+                    className="btn btn-secondary text-xs"
+                    style={{ borderRadius: "16px", padding: "6px 12px", border: "1px solid var(--border-color)", cursor: "pointer" }}
+                    onClick={() => handleOptionClick(idx, opt)}
+                    disabled={loading || msg.optionsDisabled || idx !== messages.length - 1}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ))}
+        
         {loading && (
           <div className="chat-bubble-wrapper assistant">
             <div className="chat-bubble assistant typing">
@@ -205,8 +173,6 @@ export default function ChatAgent() {
         )}
         <div ref={messagesEndRef} />
       </div>
-
-      {getSuggestedActionButtons()}
 
       <form onSubmit={handleSend} className="chat-input-area" style={{ marginTop: "15px" }}>
         <input

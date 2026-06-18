@@ -27,7 +27,8 @@ async def chat_with_agent(payload: ChatPayload):
             "success": True,
             "reply": res["reply"],
             "session_id": payload.session_id,
-            "next_action": res["next_action"]
+            "next_action": res["next_action"],
+            "options": res.get("options", [])
         }
     except Exception as e:
         logger.error(f"Chat agent endpoint error: {e}")
