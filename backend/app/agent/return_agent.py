@@ -296,13 +296,16 @@ class ReturnAgent:
             selected_item = None
             for item in items_res.get("items", []):
                 title = item["title"].lower()
-                if "jacket" in text and "jacket" in title:
+                if item["line_item_id"] in text:
+                    selected_item = item
+                    break
+                elif "jacket" in text and "jacket" in title:
                     selected_item = item
                 elif "tee" in text and "tee" in title:
                     selected_item = item
                 elif "sneaker" in text and "sneaker" in title:
                     selected_item = item
-                elif item["line_item_id"] in text:
+                elif title in text or text in title:
                     selected_item = item
 
             # If user specified something else, let's keep querying
@@ -437,7 +440,7 @@ class ReturnAgent:
                 from app.services.shopify_service import ShopifyService
                 try:
                     items = await ShopifyService.get_order_items(session["order_id"])
-                    return [item["title"] for item in items]
+                    return [f"{item['title']} (ID: {item['id']}, Qty: {item['quantity']})" for item in items]
                 except Exception:
                     pass
             return []
