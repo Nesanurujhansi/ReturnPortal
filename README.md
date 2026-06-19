@@ -35,12 +35,10 @@ return-portal/
 - **MongoDB**: A running MongoDB instance locally or in the cloud (for database and GridFS storage).
   - Setup a local instance on `mongodb://localhost:27017` or update the `MONGODB_URI` env value.
   - The application automatically initializes the following database collections on startup:
-    * `return_requests` - Persists return request configuration state.
-    * `return_items` - Lines of returned products.
-    * `return_images_metadata` - Log metadata for GridFS image uploads.
+    * `returns` - Single primary collection storing the complete return request details in a single document (order details, customer details, method, items, calculations, shipping tracking/PDF label IDs, status, and timestamps).
     * `audit_logs` - Action tracker for database adjustments.
     * `agent_conversations` - Conversational state logs.
-  - **GridFS File Storage**: Image slips or return verification images are saved inside GridFS binary buckets (`fs.files` and `fs.chunks`). The database module stores chunked files up to 5MB, preventing BSON document limit overflows.
+  - **GridFS File Storage**: Actual uploaded image files (for damaged/defective products) and generated PDF shipping labels are stored inside GridFS binary buckets (`fs.files` and `fs.chunks`). The return documents refer to these using `image_file_id` and `label_file_id`, ensuring no large binaries are stored directly inside the main `returns` collection.
 
 ---
 
@@ -218,6 +216,52 @@ To validate the full e-commerce returns pipeline correctly, execute the Postman 
 - **Fulfillment checks**: Currently verification APIs allow return operations on orders where fulfillment status is `fulfilled` or mock equivalent.
 - **USPS Labels generation**: The shipping labels integration provides mock PDFs. Real integrations (e.g., EasyPost/ShipStation) will replace this mock service.
 - **Shopify Mock Database**: In development/diagnostic checks, if Shopify configurations are missing, the system automatically falls back to `MOCK_SHOPIFY_DATABASE` orders `#1001` and `#1002`.
+
+---
+
+## Example Returns Document (Single-Collection Design)
+
+The complete return request payload, customer/order mappings, calculation summaries, and GridFS label/image references are stored as a single document in the `returns` collection:
+
+```json
+{
+  "_id": "60d5ec4b1234567890abcdef",
+  "return_id": "RET-123456",
+  "order_details": {
+    "order_id": "123456789",
+    "order_number": "1368",
+    "fulfillment_status": "fulfilled"
+  },
+  "customer_details": {
+    "name": "Baranivasan",
+    "email": "baranivasan@lateshipment.co"
+  },
+  "return_method": "refund",
+  "items": [
+    {
+      "item_id": "987654321",
+      "quantity": 1,
+      "reason": "Damaged Product",
+      "notes": "The item arrived with a broken zipper.",
+      "image_file_id": "60d5ec4b1234567890abc111",
+      "exchange_variant": null
+    }
+  ],
+  "subtotal": 20.50,
+  "handling_fee": 5.99,
+  "total_amount": 14.51,
+  "shipping": {
+    "label_number": "RET-2026-12345",
+    "tracking_number": "9400100000001234567890",
+    "carrier": "USPS",
+    "label_file_id": "60d5ec4b1234567890abc222",
+    "shipping_label_url": "http://localhost:8000/api/uploads/60d5ec4b1234567890abc222"
+  },
+  "status": "Created",
+  "created_at": "2026-06-19T10:00:00.000Z",
+  "updated_at": "2026-06-19T10:00:00.000Z"
+}
+```
 
 ---
 

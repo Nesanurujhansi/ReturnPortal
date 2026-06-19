@@ -10,9 +10,7 @@ class Database:
     fs = None
     
     # Collections
-    return_requests = None
-    return_items = None
-    return_images_metadata = None
+    returns = None
     audit_logs = None
     agent_conversations = None
     
@@ -20,7 +18,6 @@ class Database:
     return_methods = None
     return_reasons = None
     settings_col = None
-    shipping_labels = None
 
 db = Database()
 
@@ -34,16 +31,13 @@ async def connect_to_mongo():
         db.fs = AsyncIOMotorGridFSBucket(db.db)
         
         # Reference collections
-        db.return_requests = db.db["return_requests"]
-        db.return_items = db.db["return_items"]
-        db.return_images_metadata = db.db["return_images_metadata"]
+        db.returns = db.db["returns"]
         db.audit_logs = db.db["audit_logs"]
         db.agent_conversations = db.db["agent_conversations"]
         
         db.return_methods = db.db["return_methods"]
         db.return_reasons = db.db["return_reasons"]
         db.settings_col = db.db["settings"]
-        db.shipping_labels = db.db["shipping_labels"]
         
         # Connection validation ping
         await db.db.command("ping")

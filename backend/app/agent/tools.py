@@ -169,13 +169,14 @@ def create_return_request_tool(
         )
         
         ret_doc = loop.run_until_complete(ReturnService.create_return_request(payload))
+        shipping = ret_doc.get("shipping") or {}
         return json.dumps({
             "success": True,
             "return_id": ret_doc["return_id"],
             "status": ret_doc["status"],
-            "tracking_number": ret_doc["tracking_number"],
-            "carrier": ret_doc["carrier"],
-            "shipping_label_url": ret_doc["shipping_label_url"]
+            "tracking_number": shipping.get("tracking_number") or ret_doc.get("tracking_number"),
+            "carrier": shipping.get("carrier") or ret_doc.get("carrier"),
+            "shipping_label_url": shipping.get("shipping_label_url") or ret_doc.get("shipping_label_url")
         })
     except Exception as e:
         return json.dumps({"success": False, "detail": str(e)})

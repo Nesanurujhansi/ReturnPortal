@@ -62,10 +62,6 @@ class GridFSService:
                 await grid_in.close()
                 file_id = str(grid_in._id)
 
-                # Store metadata log in return_images_metadata
-                meta_doc["file_id"] = file_id
-                await db.return_images_metadata.insert_one(meta_doc)
-
                 logger.info(f"Image {file.filename} uploaded to GridFS. file_id={file_id}")
                 return file_id
             except Exception as e:
@@ -81,6 +77,41 @@ class GridFSService:
             }
             MOCK_METADATA_CACHE[file_id] = meta_doc
             logger.warning(f"Saved file {file.filename} in simulated fallback cache. file_id={file_id}")
+            return file_id
+
+    @classmethod
+    async def upload_bytes(cls, data: bytes, filename: str, content_type: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+        """Uploads raw bytes directly to GridFS."""
+        meta_doc = metadata or {}
+        meta_doc.update({
+            "filename": filename,
+            "contentType": content_type,
+            "size_bytes": len(data)
+        })
+
+        if db.fs is not None:
+            try:
+                grid_in = db.fs.open_upload_stream(
+                    filename=filename,
+                    metadata=meta_doc
+                )
+                await grid_in.write(data)
+                await grid_in.close()
+                file_id = str(grid_in._id)
+                logger.info(f"Bytes for {filename} uploaded to GridFS. file_id={file_id}")
+                return file_id
+            except Exception as e:
+                logger.error(f"MongoDB GridFS upload bytes failed: {e}")
+                raise HTTPException(status_code=500, detail=f"Database bytes upload failed: {str(e)}")
+        else:
+            file_id = str(ObjectId())
+            MOCK_GRIDFS_CACHE[file_id] = {
+                "bytes": data,
+                "filename": filename,
+                "contentType": content_type
+            }
+            MOCK_METADATA_CACHE[file_id] = meta_doc
+            logger.warning(f"Saved bytes for {filename} in simulated fallback cache. file_id={file_id}")
             return file_id
 
     @classmethod
@@ -112,13 +143,12 @@ class GridFSService:
 
     @classmethod
     async def delete_file(cls, file_id: str) -> bool:
-        """Deletes file binary from GridFS and updates metadata logs."""
+        """Deletes file binary from GridFS."""
         deleted = False
         if db.fs is not None:
             try:
                 obj_id = ObjectId(file_id)
                 await db.fs.delete(obj_id)
-                await db.return_images_metadata.delete_many({"file_id": file_id})
                 deleted = True
                 logger.info(f"Successfully deleted GridFS file: {file_id}")
             except Exception as e:

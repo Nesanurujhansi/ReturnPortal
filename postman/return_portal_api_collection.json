@@ -44,7 +44,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\"\n}"
+          "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\"\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/orders/verify",
@@ -67,7 +67,7 @@
           "header": [
             { "key": "Content-Type", "value": "application/json" }
           ],
-          "body": "{\n  \"success\": true,\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"customer_name\": \"Alex Mercer\",\n  \"items\": [\n    {\n      \"id\": \"item_01\",\n      \"name\": \"Classic Denim Jacket\",\n      \"price\": 89.00,\n      \"quantity\": 1,\n      \"variant\": \"Indigo / Medium\",\n      \"image\": \"https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&q=80&w=300\"\n    }\n  ]\n}"
+          "body": "{\n  \"success\": true,\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\",\n  \"customer_name\": \"Alex Mercer\",\n  \"items\": [\n    {\n      \"id\": \"item_01\",\n      \"name\": \"Classic Denim Jacket\",\n      \"price\": 89.00,\n      \"quantity\": 1,\n      \"variant\": \"Indigo / Medium\",\n      \"image\": \"https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&q=80&w=300\"\n    }\n  ]\n}"
         }
       ]
     },
@@ -98,7 +98,7 @@
           "header": [
             { "key": "Content-Type", "value": "application/json" }
           ],
-          "body": "{\n  \"success\": true,\n  \"items\": [\n    {\n      \"line_item_id\": \"item_01\",\n      \"product_id\": \"7891230\",\n      \"variant_id\": \"9923842\",\n      \"title\": \"Classic Denim Jacket\",\n      \"sku\": \"JKT-DEN-001\",\n      \"quantity\": 1,\n      \"price\": 89.0,\n      \"tax\": 7.12,\n      \"image_url\": \"https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&q=80&w=300\"\n    }\n  ]\n}"
+          "body": "{\n  \"success\": true,\n  \"items\": [\n    {\n      \"line_item_id\": \"item_01\",\n      \"product_id\": \"{{product_id}}\",\n      \"variant_id\": \"9923842\",\n      \"title\": \"Classic Denim Jacket\",\n      \"sku\": \"JKT-DEN-001\",\n      \"quantity\": 1,\n      \"price\": 89.0,\n      \"tax\": 7.12,\n      \"image_url\": \"https://images.unsplash.com/photo-1576995853123-5a10305d93c0?auto=format&fit=crop&q=80&w=300\"\n    }\n  ]\n}"
         }
       ]
     },
@@ -108,14 +108,14 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "{{base_url}}/api/products/7891230/variants",
+          "raw": "{{base_url}}/api/products/{{product_id}}/variants",
           "host": [
             "{{base_url}}"
           ],
           "path": [
             "api",
             "products",
-            "7891230",
+            "{{product_id}}",
             "variants"
           ]
         },
@@ -272,7 +272,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\"\n    }\n  ]\n}"
+          "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"{{item_id}}\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\"\n    }\n  ]\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/returns/calculate",
@@ -308,7 +308,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Size is too large around shoulders.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
+          "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"{{item_id}}\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Size is too large around shoulders.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
         },
         "url": {
           "raw": "{{base_url}}/api/returns/create",
@@ -361,7 +361,7 @@
           "header": [
             { "key": "Content-Type", "value": "application/json" }
           ],
-          "body": "{\n  \"return_id\": \"RET-987123\",\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Size is too large around shoulders.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01,\n  \"status\": \"Pending Review\",\n  \"tracking_number\": \"9400100000001234567890\",\n  \"carrier\": \"USPS\",\n  \"created_at\": \"2026-06-09T10:00:00.000Z\"\n}"
+          "body": "{\n  \"return_id\": \"RET-987123\",\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"{{item_id}}\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Size is too large around shoulders.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01,\n  \"status\": \"Pending Review\",\n  \"tracking_number\": \"9400100000001234567890\",\n  \"carrier\": \"USPS\",\n  \"created_at\": \"2026-06-09T10:00:00.000Z\"\n}"
         }
       ]
     },

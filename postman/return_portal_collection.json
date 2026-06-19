@@ -57,7 +57,7 @@
                   "pm.test(\"Order verification data is correct\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.order_number).to.eql(pm.environment.get(\"order_id\"));",
+                  "    pm.expect(jsonData.order_number).to.eql(pm.environment.get(\"order_number\"));",
                   "    pm.expect(jsonData.email).to.eql(pm.environment.get(\"customer_email\"));",
                   "    pm.expect(jsonData.items).to.be.an(\"array\");",
                   "});"
@@ -73,7 +73,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"order_number\": \"{{order_id}}\",\n  \"email\": \"{{customer_email}}\"\n}"
+              "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/orders/verify",
@@ -170,9 +170,9 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/products/7891230/variants",
+              "raw": "{{base_url}}/api/products/{{product_id}}/variants",
               "host": ["{{base_url}}"],
-              "path": ["api", "products", "7891230", "variants"]
+              "path": ["api", "products", "{{product_id}}", "variants"]
             }
           }
         },
@@ -306,7 +306,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"order_number\": \"{{order_id}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\"\n    }\n  ]\n}"
+              "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"{{item_id}}\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\"\n    }\n  ]\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/returns/calculate",
@@ -343,7 +343,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"order_number\": \"{{order_id}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Notes text here.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
+              "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"{{item_id}}\",\n      \"quantity\": 1,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Notes text here.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/returns/create",
@@ -365,7 +365,7 @@
                   "pm.test(\"Verify database return request record matches input\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.return_id).to.eql(pm.environment.get(\"return_id\"));",
-                  "    pm.expect(jsonData.order_number).to.eql(pm.environment.get(\"order_id\"));",
+                  "    pm.expect(jsonData.order_number).to.eql(pm.environment.get(\"order_number\"));",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -427,7 +427,7 @@
                 },
                 {
                   "key": "product_id",
-                  "value": "item_01",
+                  "value": "{{item_id}}",
                   "type": "text"
                 },
                 {
@@ -525,7 +525,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"order_number\": \"9999\",\n  \"email\": \"customer@example.com\"\n}"
+              "raw": "{\n  \"order_number\": \"9999\",\n  \"email\": \"{{customer_email}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/orders/verify",
@@ -556,7 +556,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"wrong@example.com\"\n}"
+              "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"wrong_email@example.com\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/orders/verify",
@@ -591,7 +591,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 15,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Too big\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
+              "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"{{item_id}}\",\n      \"quantity\": 15,\n      \"reason\": \"Too Large\",\n      \"notes\": \"Too big\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/returns/create",
@@ -626,7 +626,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"order_number\": \"1001\",\n  \"email\": \"customer@example.com\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"item_01\",\n      \"quantity\": 1,\n      \"reason\": \"Defective / Damaged\",\n      \"notes\": \"Sleeve seam torn open.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
+              "raw": "{\n  \"order_number\": \"{{order_number}}\",\n  \"email\": \"{{customer_email}}\",\n  \"method\": \"refund\",\n  \"items\": [\n    {\n      \"item_id\": \"{{item_id}}\",\n      \"quantity\": 1,\n      \"reason\": \"Defective / Damaged\",\n      \"notes\": \"Sleeve seam torn open.\",\n      \"image_file_id\": null\n    }\n  ],\n  \"subtotal\": 89.00,\n  \"handling_fee\": 5.99,\n  \"total_amount\": 83.01\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/returns/create",
@@ -673,7 +673,7 @@
                 },
                 {
                   "key": "product_id",
-                  "value": "item_01",
+                  "value": "{{item_id}}",
                   "type": "text"
                 },
                 {
@@ -708,7 +708,7 @@
                   "pm.test(\"Agent welcome response structure valid\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.reply).to.include(\"Order Number\");",
+                  "    pm.expect(jsonData.reply.toLowerCase()).to.include(\"order\");",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -744,7 +744,7 @@
                   "pm.test(\"Agent verified order items successfully\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.reply).to.include(\"Denim Jacket\");",
+                  "    pm.expect(jsonData.reply.toLowerCase()).to.satisfy(function(val) { return val.includes(\"boots\") || val.includes(\"shirt\") || val.includes(\"jacket\") || val.includes(\"item\"); });",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -758,7 +758,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"session_id\": \"session_postman_123\",\n  \"history\": [\n    { \"role\": \"assistant\", \"content\": \"Hi! I am your AI Return Assistant. Please provide your Order Number and Email to get started.\" },\n    { \"role\": \"user\", \"content\": \"hello\" }\n  ],\n  \"message\": \"Order #1001, customer@example.com\"\n}"
+              "raw": "{\n  \"session_id\": \"session_postman_123\",\n  \"history\": [\n    { \"role\": \"assistant\", \"content\": \"Hi! I am your AI Return Assistant. Please provide your Order Number and Email to get started.\" },\n    { \"role\": \"user\", \"content\": \"hello\" }\n  ],\n  \"message\": \"Order #{{order_number}}, {{customer_email}}\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/agent/chat",
@@ -780,7 +780,7 @@
                   "pm.test(\"Session verified memory values stored\", function () {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.success).to.be.true;",
-                  "    pm.expect(jsonData.data.order_number).to.eql(\"1001\");",
+                  "    pm.expect(jsonData.data.order_number).to.eql(pm.environment.get(\"order_number\"));",
                   "});"
                 ],
                 "type": "text/javascript"

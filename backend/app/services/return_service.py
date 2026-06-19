@@ -6,6 +6,7 @@ from typing import Dict, Any, List, Optional
 from app.database.connection import db_instance
 from app.services.shopify_service import ShopifyService
 from app.models.schemas import ReturnItemSelection, ReturnCreateRequest
+from app.services.shipping_label_service import ShippingLabelService
 
 logger = logging.getLogger("app.returns")
 
@@ -71,30 +72,56 @@ class ReturnService:
         
         # Unique return ID and shipping details
         return_id = f"RET-{random.randint(100000, 999999)}"
-        tracking_number = f"940010000000{random.randint(1000000000, 9999999999)}"
-        carrier = "USPS"
+        customer_name = "Valued Customer"
+        cust = order.get("customer")
+        if cust:
+            customer_name = f"{cust.get('first_name', '')} {cust.get('last_name', '')}".strip() or customer_name
+
+        label_info = await ShippingLabelService.generate_mock_label(return_id, customer_name)
         status = "Pending Review"  # Default status
 
         return_doc = {
             "return_id": return_id,
-            "order_number": request_data.order_number,
-            "email": request_data.email,
-            "method": request_data.method,
-            "items": [item.model_dump() for item in request_data.items],
+            "order_details": {
+                "order_id": str(order.get("id")),
+                "order_number": request_data.order_number,
+                "fulfillment_status": order.get("fulfillment_status")
+            },
+            "customer_details": {
+                "name": customer_name,
+                "email": request_data.email
+            },
+            "return_method": request_data.method,
+            "items": [
+                {
+                    "item_id": item.item_id,
+                    "quantity": item.quantity,
+                    "reason": item.reason,
+                    "notes": item.notes,
+                    "image_file_id": item.image_file_id,
+                    "exchange_variant": item.exchange_variant
+                }
+                for item in request_data.items
+            ],
             "subtotal": summary["subtotal"],
             "handling_fee": summary["handling_fee"],
             "total_amount": summary["total_amount"],
+            "shipping": {
+                "label_number": label_info["label_number"],
+                "tracking_number": label_info["tracking_number"],
+                "carrier": label_info["carrier"],
+                "label_file_id": label_info["label_file_id"],
+                "shipping_label_url": label_info["shipping_label_url"]
+            },
             "status": status,
-            "tracking_number": tracking_number,
-            "carrier": carrier,
-            "shipping_label_url": f"https://shipping-carrier.com/labels/{return_id}.pdf",
-            "created_at": datetime.datetime.utcnow().isoformat()
+            "created_at": datetime.datetime.utcnow().isoformat(),
+            "updated_at": datetime.datetime.utcnow().isoformat()
         }
 
         # 5. Persist return request
-        if db_instance.return_requests is not None:
+        if db_instance.returns is not None:
             try:
-                await db_instance.return_requests.insert_one(return_doc.copy())
+                await db_instance.returns.insert_one(return_doc.copy())
                 # Add audit log
                 audit_log = {
                     "event": "RETURN_CREATED",
@@ -116,9 +143,9 @@ class ReturnService:
     @classmethod
     async def get_return_by_id(cls, return_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve return details by Return ID."""
-        if db_instance.return_requests is not None:
+        if db_instance.returns is not None:
             try:
-                ret = await db_instance.return_requests.find_one({"return_id": return_id})
+                ret = await db_instance.returns.find_one({"return_id": return_id})
                 if ret:
                     # Strip MongoDB '_id' object to make it serializable
                     ret.pop("_id", None)

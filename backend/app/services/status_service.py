@@ -19,9 +19,9 @@ class StatusService:
     @classmethod
     async def get_return_status(cls, return_id: str) -> Optional[Dict[str, Any]]:
         """Fetch current status and timestamps of a return request."""
-        if db.return_requests is not None:
+        if db.returns is not None:
             try:
-                ret = await db.return_requests.find_one({"return_id": return_id})
+                ret = await db.returns.find_one({"return_id": return_id})
                 if ret:
                     return {
                         "return_id": ret.get("return_id"),
@@ -42,9 +42,9 @@ class StatusService:
         updated = False
         now_str = datetime.datetime.utcnow().isoformat()
 
-        if db.return_requests is not None:
+        if db.returns is not None:
             try:
-                result = await db.return_requests.update_one(
+                result = await db.returns.update_one(
                     {"return_id": return_id},
                     {"$set": {"status": new_status, "updated_at": now_str}}
                 )
